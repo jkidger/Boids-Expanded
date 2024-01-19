@@ -2,16 +2,16 @@
 #
 # Get latest from https://github.com/github/gitignore/blob/master/Unity.gitignore
 #
-/[Ll]ibrary/
-/[Tt]emp/
-/[Oo]bj/
-/[Bb]uild/
-/[Bb]uilds/
-/[Ll]ogs/
-/[Mm]emoryCaptures/
+Boids-2D/[Ll]ibrary/
+Boids-2D/[Tt]emp/
+Boids-2D/[Oo]bj/
+Boids-2D/[Bb]uild/
+Boids-2D/[Bb]uilds/
+Boids-2D/[Ll]ogs/
+Boids-2D/[Mm]emoryCaptures/
 
 # Asset meta data should only be ignored when the corresponding asset is also ignored
-!/[Aa]ssets/**/*.meta
+!Boids-2D/[Aa]ssets/**/*.meta
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
@@ -20,7 +20,7 @@
 [Aa]ssets/Plugins/Editor/JetBrains*
 
 # Visual Studio cache directory
-.vs/
+Boids-2D/.vs/
 
 # Gradle cache directory
 .gradle/
