@@ -28,6 +28,15 @@ public class NewBehaviourScript : Editor
         {
             genBoids.resetMetrics();
         }
-
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("Assign Boids"))
+        {
+            genBoids.assignBoids();
+        }
+        if (GUILayout.Button("Delete Goals"))
+        {
+            //genBoids.deleteGoals();
+        }
+        GUILayout.EndHorizontal();
     }
 }

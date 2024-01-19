@@ -5,7 +5,8 @@ using System.Diagnostics;
 
 public class GenBoids : MonoBehaviour
 {
-    GameObject goal;
+    GameObject goal = null;
+    public List<GameObject> goals;
 
     public List<long> timeToGoal = new List<long>();
     long goalStartTime;
@@ -59,7 +60,8 @@ public class GenBoids : MonoBehaviour
         canvasHeight = canvas.transform.localScale.y;
         boids = new List<GameObject>();
 
-        goal = GameObject.Instantiate(GameObject.Find("DeadGoal"));
+        // Add back in to create moving goal
+        /*goal = GameObject.Instantiate(GameObject.Find("DeadGoal"));
         SpriteRenderer gr = goal.GetComponent<SpriteRenderer>();
         gr.color = new Color32(0, 255, 0, 255);
         goal.name = "Goal";
@@ -67,7 +69,7 @@ public class GenBoids : MonoBehaviour
         goal.transform.position = new Vector2(0, 0);
         goal.AddComponent<GoalScript>();
         goal.GetComponent<GoalScript>().canvas = canvas;
-        goal.GetComponent<GoalScript>().randoPos();
+        goal.GetComponent<GoalScript>().randoPos();*/
 
         flockCentre = GameObject.Find("Flock Circle");
 
@@ -82,15 +84,18 @@ public class GenBoids : MonoBehaviour
         canvas.transform.localScale = new Vector3(canvasWidth, canvasHeight, 1f);
 
         getMetrics(); // Get current metrics for testing
-        
+
+        //goals = canvas.GetComponent<CanvasScript>().goals; // Get current goals
+
         foreach (GameObject boid in boids)
         {
             var boidScript = boid.GetComponent<BoidScript>();
             // Param assignment
                 if (goal != null)
                 {
-                    boidScript.goalPos = goal.transform.position;
+                    boidScript.goalPos = boid.GetComponent<BoidScript>().goal.transform.position;
                 }
+                //boidScript.goal = goal;
 
                 boidScript.sepLength = sepLength;
                 boidScript.alignLength = alignLength;
@@ -130,11 +135,17 @@ public class GenBoids : MonoBehaviour
         {
             createBoid(("Gen" + (boids.Count-1)), white, transparent, transparent);
         }
-        goal.GetComponent<GoalScript>().findBoids();
+        if (goal != null)
+        {
+            goal.GetComponent<GoalScript>().findBoids();
+        }
     }
     public void deleteAllBoids()
     {
-        goal.GetComponent<GoalScript>().boids.Clear();
+        if (goal != null)
+        {
+            goal.GetComponent<GoalScript>().boids.Clear();
+        }
         GameObject[] allRadii = GameObject.FindGameObjectsWithTag("radius");
         GameObject[] allHeadings = GameObject.FindGameObjectsWithTag("heading");
         int num = boids.Count;
@@ -199,8 +210,11 @@ public class GenBoids : MonoBehaviour
             boidScript.cohScale = cohScale;
             boidScript.prevMovScale = prevMovScale;
         // Param assignment
-
-        newDrone.GetComponent<BoidScript>().goalPos = goal.GetComponent<GoalScript>().transform.position; // Tell boid where the goal is
+        if (goal != null)
+        {
+            newDrone.GetComponent<BoidScript>().goalPos = goal.GetComponent<GoalScript>().transform.position; // Tell boid where the goal is
+        }
+        newDrone.GetComponent<BoidScript>().goal = goal;
 
         foreach (GameObject b in boids) // Tell all boids to search for neighbours
         {
@@ -232,15 +246,18 @@ public class GenBoids : MonoBehaviour
             goalStartTime = time;
         } else
         {
-            goal = GameObject.Find("Goal");
-            var goalScript = goal.GetComponent<GoalScript>();
-            if (goalScript.numCollisions > goalCollisions)
+            if (goal != null)
             {
-                goalCollisions = goalScript.numCollisions;
-                
-                //UnityEngine.Debug.Log("Time to Goal: " + time + "ms");
-                timeToGoal.Add(time - goalStartTime);
-                goalStartTime = time;
+                goal = GameObject.Find("Goal");
+                var goalScript = goal.GetComponent<GoalScript>();
+                if (goalScript.numCollisions > goalCollisions)
+                {
+                    goalCollisions = goalScript.numCollisions;
+
+                    //UnityEngine.Debug.Log("Time to Goal: " + time + "ms");
+                    timeToGoal.Add(time - goalStartTime);
+                    goalStartTime = time;
+                }
             }
         }
 
@@ -314,5 +331,57 @@ public class GenBoids : MonoBehaviour
         flockStartTime = time;
 
         percentFlocked = 0;
+    }
+    float distSqr(Vector2 a, Vector2 b)
+    {
+        float dx = a.x - b.x;
+        float dy = a.y - b.y;
+        float d = (dx * dx) + (dy * dy);
+        return d;
+    }
+    public void assignBoids()
+    {
+        goals = canvas.GetComponent<CanvasScript>().goals;
+        // Get average position of swarm
+        Vector3 avgPosition = avgPos();
+
+        // Sort goals by largest distance to avgPosition
+        List<(float, int)> dist = new List<(float, int)>();
+        // Find distances from goal points to avgPosition
+        for (int i = 0; i < goals.Count; i++)
+        {
+            dist.Add((distSqr(goals[i].transform.position, avgPosition), i));
+        }
+        // Sort goals by largest distance first
+        dist.Sort((a, b) => b.Item1.CompareTo(a.Item1));
+        List<(float, int)> order = new List<(float, int)>();
+        order = dist;
+
+        // Select closest boid for each goal node
+        List<int> selected = new List<int>();
+        for (int i = 0; i < order.Count; i++)
+        {
+            List<(float, int)> dist2 = new List<(float, int)>();
+            // Find distance from goal node to each boid
+            for (int j = 0; j < boids.Count; j++)
+            {
+                dist2.Add((distSqr(goals[order[i].Item2].transform.position, boids[j].transform.position), j));
+            }
+
+            // Find closest boid that hasn't been selected yet
+            dist2.Sort((a, b) => a.Item1.CompareTo(b.Item1));
+            int closetBoid = dist2[0].Item2;
+            while (selected.Contains(closetBoid))
+            {
+                dist2.Remove(dist2[0]);
+                closetBoid = dist2[0].Item2;
+            }
+
+            // Set boid's goal + add boid to selected list
+            boids[closetBoid].GetComponent<BoidScript>().goalPos = goals[order[i].Item2].transform.position;
+            boids[closetBoid].GetComponent<BoidScript>().goal = goals[order[i].Item2];
+            print("assigned goal[" + order[i].Item2 + "] to boid[" + closetBoid + "]");
+            selected.Add(closetBoid);
+        }
     }
 }

@@ -7,6 +7,8 @@ public class CanvasScript : MonoBehaviour
 
     public List<GameObject> lines;
     public List<GameObject> edges;
+    public List<GameObject> goals;
+    int count = 0;
     bool toggle;
     Vector2 start;
     float x;
@@ -15,9 +17,15 @@ public class CanvasScript : MonoBehaviour
     Vector2 topRight;
     Vector2 botLeft;
     Vector2 botRight;
+
+    Color colour;
+
     // Start is called before the first frame update
     void Start()
     {
+        colour = new Color(150, 150, 150);
+        colour.a = 0.2f;
+        //randoColour();
         lines = new List<GameObject>();
         toggle = false;
 
@@ -50,19 +58,28 @@ public class CanvasScript : MonoBehaviour
         edges[2].GetComponent<LineRenderer>().SetPosition(1, botLeft);
         edges[3].GetComponent<LineRenderer>().SetPosition(0, botLeft);
         edges[3].GetComponent<LineRenderer>().SetPosition(1, topLeft);
-    }
-    void OnMouseDown()
-    {
-        if (!toggle)
+
+        if (Input.GetMouseButtonDown(0))
         {
-            start = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            toggle = true;
-        } else
+            // Detect left click to create obstacle lines
+            if (!toggle)
+            {
+                start = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                toggle = true;
+            }
+            else
+            {
+                Vector2 end = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                lines.Add(createObstacle(start, end, "Obstacle" + (lines.Count + 4)));
+                start = Vector2.zero;
+                toggle = false;
+            }
+        }
+        else if (Input.GetMouseButtonDown(1))
         {
-            Vector2 end = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            lines.Add(createObstacle(start, end, "Obstacle" + (lines.Count + 4)));
-            start = Vector2.zero;
-            toggle = false;
+            // Detect right click to create goal nodes
+            createGoal(Camera.main.ScreenToWorldPoint(Input.mousePosition), ("goal" + count));
+            count++;
         }
     }
     public GameObject createObstacle(Vector2 start, Vector2 end, string name)
@@ -86,5 +103,31 @@ public class CanvasScript : MonoBehaviour
             script.obstacles = script.findObjects("obstacle");
         }
         return line;
+    }
+    public void createGoal(Vector2 pos, string name)
+    {
+        GameObject goal = GameObject.Instantiate(GameObject.Find("DeadGoal")); // Create goal from template
+        SpriteRenderer sr = goal.GetComponent<SpriteRenderer>();
+        goal.transform.position = pos;
+        goal.name = name;
+        sr.color = colour;
+        goal.tag = "goal";
+        //goal.AddComponent<GoalScript>(); // Assign script to goal
+        goals.Add(goal);
+    }
+    public void randoColour()
+    {
+        float r = Random.Range(0f, 1f);
+        float g = Random.Range(0f, 1f);
+        float b = Random.Range(0f, 1f);
+        Color temp = new Color(r, g, b);
+        temp.a = 0.2f;
+        colour = temp;
+
+        /*oldGoals = new List<GameObject>();
+        foreach (GameObject goal in newGoals)
+        {
+            oldGoals.Add(goal);
+        }*/
     }
 }

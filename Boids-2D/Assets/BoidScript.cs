@@ -30,6 +30,7 @@ public class BoidScript : MonoBehaviour
     Vector2 startMovement;
     GameObject heading;
     Vector2 movement;
+    public GameObject goal;
     public Vector2 goalPos;
     public List<GameObject> obstacles = new List<GameObject>();
 
@@ -49,7 +50,7 @@ public class BoidScript : MonoBehaviour
         rayRenderer.endWidth = 1f;
         ray.name = gameObject.name + " collision ray";*/
 
-        
+
 
         heading = new GameObject();
         heading.transform.position = gameObject.transform.position;
@@ -65,8 +66,8 @@ public class BoidScript : MonoBehaviour
         canvasWidth = canvas.transform.localScale.x;
         canvasHeight = canvas.transform.localScale.y;
 
-        float startX = rnd.Next((int)(((canvasWidth/2) * -1) + 10), (int)((canvasWidth/2) - 10));
-        float startY = rnd.Next((int)(((canvasHeight/2) * -1) + 10), (int)((canvasHeight/2) - 10));
+        float startX = rnd.Next((int)(((canvasWidth / 2) * -1) + 10), (int)((canvasWidth / 2) - 10));
+        float startY = rnd.Next((int)(((canvasHeight / 2) * -1) + 10), (int)((canvasHeight / 2) - 10));
         transform.position = new Vector3(startX, startY, 0);
 
         float dX = (((float)rnd.NextDouble()) - 0.5f) * 2 * droneSpeed;
@@ -94,23 +95,28 @@ public class BoidScript : MonoBehaviour
     void Update()
     {
         Vector2 prevMove = capSpeed(movement, droneSpeed); // previous movement
-        Vector2 goalUrge = capSpeed(goalPos - new Vector2(transform.position.x, transform.position.y), droneSpeed); // boid is urged towards the goal
+        Vector2 goalUrge = new Vector2(0, 0);
+        if (goal != null)
+        {
+            goalUrge = capSpeed(goalPos - new Vector2(transform.position.x, transform.position.y), droneSpeed); // boid is urged towards the goal
+        }
+
         Vector2 sepMovement = capSpeed(separation2(), droneSpeed);
         Vector2 aliMovement = capSpeed(alignment(), droneSpeed);
         Vector2 cohMovement = capSpeed(cohesion(), droneSpeed);
         Vector2[] movements = new Vector2[] { scale(sepMovement, sepScale), scale(goalUrge, goalScale), scale(aliMovement, aliScale), scale(cohMovement, cohScale), scale(prevMove, prevMovScale) }; // combine rules by importance
 
         Vector2 temp = sumUpTo(movements, droneSpeed); // Work out suggested movement
-        Vector2 obst = capSpeed(obstCalc(temp, 50, sepLength*2), droneSpeed); // Obstacle avoidance given the suggested movement
+        Vector2 obst = capSpeed(obstCalc(temp, 50, sepLength * 2), droneSpeed); // Obstacle avoidance given the suggested movement
         Vector2[] test = new Vector2[] { scale(obst, obstScale), temp };
-        Vector2 aaa = capSpeed(sumUpTo(test, droneSpeed)*accel, droneSpeed); // Recombine original suggestion with OA suggestion
+        Vector2 aaa = capSpeed(sumUpTo(test, droneSpeed) * accel, droneSpeed); // Recombine original suggestion with OA suggestion
         movement = aaa;
 
 
         updatePosition(); // Update boid position
         updateHeading(); // Update heading 'line'
         checkEdges(); // Check for out of bounds
-        
+
     }
     void updatePosition()
     {
@@ -168,11 +174,12 @@ public class BoidScript : MonoBehaviour
     Vector2 separation()
     {
         SpriteRenderer sr = gameObject.GetComponent<SpriteRenderer>();
-        
+
         if (gameObject.name == "Main")
         {
             sr.color = new Color32(255, 0, 0, 255); // if this object is the lead boid then colour it red
-        } else
+        }
+        else
         {
             sr.color = new Color32(255, 255, 255, 255); // otherwise colour it white
         }
@@ -260,7 +267,7 @@ public class BoidScript : MonoBehaviour
                 }
                 GameObject neigh = neighbours[i];
                 Vector2 meToNeigh = neigh.transform.position - gameObject.transform.position;
-                Vector2 awayFromNeigh = new Vector2(meToNeigh.x*-1, meToNeigh.y*-1);
+                Vector2 awayFromNeigh = new Vector2(meToNeigh.x * -1, meToNeigh.y * -1);
                 return awayFromNeigh;
             }
         }
@@ -278,7 +285,8 @@ public class BoidScript : MonoBehaviour
                 near.Add(neighbours[i]);
             }
         }
-        if (near.Count > 0) {
+        if (near.Count > 0)
+        {
             float totalDX = movement.x;
             float totalDY = movement.y;
             for (int i = 0; i < near.Count; i++)
@@ -293,8 +301,7 @@ public class BoidScript : MonoBehaviour
             Vector2 newMovement = new Vector2(avgDX, avgDY);
 
             return newMovement;
-        } else
-        {
+        } else {
             return new Vector2(0, 0);
         }
     }
@@ -334,7 +341,7 @@ public class BoidScript : MonoBehaviour
         {
             LineRenderer lr = obstacles[i].GetComponent<LineRenderer>();
             Vector2 start = lr.GetPosition(0);
-            Vector2 end = lr.GetPosition(lr.positionCount-1);
+            Vector2 end = lr.GetPosition(lr.positionCount - 1);
             Vector2 suggestion = castRays(start, end, rayLength, numRays, mov); // cast rays and test against each edge
             if (suggestion.magnitude > 0)
             {
@@ -380,7 +387,7 @@ public class BoidScript : MonoBehaviour
                 r.SetActive(true);
                 rays.Add(r);*/
 
-                if (hits(transform.position,new Vector2(transform.position.x, transform.position.y) +
+                if (hits(transform.position, new Vector2(transform.position.x, transform.position.y) +
                     normaliseSpeed(current, rayLength), lineA, lineB)) // if new ray hits then carry on
                 {
                     toggle *= -1;
@@ -401,7 +408,7 @@ public class BoidScript : MonoBehaviour
     {
         Vector2 E = new Vector2(B.x - A.x, B.y - A.y);
         Vector2 F = new Vector2(D.x - C.x, D.y - C.y);
-        Vector2 P = new Vector2(E.y*-1, E.x);
+        Vector2 P = new Vector2(E.y * -1, E.x);
         float h = dotProduct((A - C), P) / dotProduct(F, P);
         float g = dotProduct((A - C), F) / dotProduct(F, P);
         Vector2 hitPoint = C + (F * h);
@@ -412,8 +419,7 @@ public class BoidScript : MonoBehaviour
         if (dotProduct(F, P) != 0 && 0 <= h && h <= 1 && lowX <= hitPoint.x && hitPoint.x <= upX && lowY <= hitPoint.y && hitPoint.y <= upY)
         {
             return true;
-        } else
-        {
+        } else {
             return false;
         }
     }
@@ -422,8 +428,7 @@ public class BoidScript : MonoBehaviour
         if (a > b)
         {
             return a;
-        } else
-        {
+        } else {
             return b;
         }
     }
@@ -466,7 +471,7 @@ public class BoidScript : MonoBehaviour
     Vector2 sum(Vector2[] movements)
     {
         Vector2 total = new Vector2(0, 0);
-        foreach(Vector2 m in movements)
+        foreach (Vector2 m in movements)
         {
             total = total + m;
         }
@@ -482,8 +487,7 @@ public class BoidScript : MonoBehaviour
             if ((mag + m.magnitude) <= topSpeed)
             {
                 total = total + m;
-            } else
-            {
+            } else {
                 float left = topSpeed - mag;
                 Vector2 scaled = capSpeed(m, left);
                 total = total + scaled;
