@@ -66,9 +66,9 @@ public class BoidScript : MonoBehaviour
         canvasWidth = canvas.transform.localScale.x;
         canvasHeight = canvas.transform.localScale.y;
 
-        float startX = rnd.Next((int)(((canvasWidth / 2) * -1) + 10), (int)((canvasWidth / 2) - 10));
-        float startY = rnd.Next((int)(((canvasHeight / 2) * -1) + 10), (int)((canvasHeight / 2) - 10));
-        transform.position = new Vector3(startX, startY, 0);
+        //float startX = rnd.Next((int)(((canvasWidth / 2) * -1) + 10), (int)((canvasWidth / 2) - 10));
+        //float startY = rnd.Next((int)(((canvasHeight / 2) * -1) + 10), (int)((canvasHeight / 2) - 10));
+        //transform.position = new Vector3(startX, startY, 0);
 
         float dX = (((float)rnd.NextDouble()) - 0.5f) * 2 * droneSpeed;
         float dY = (((float)rnd.NextDouble()) - 0.5f) * 2 * droneSpeed;

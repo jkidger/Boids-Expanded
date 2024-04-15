@@ -46,6 +46,8 @@ public class GenBoids : MonoBehaviour
 
     GameObject flockCentre;
 
+    System.Random rnd = new System.Random();
+
 
     Color32 red = new Color32(255, 0, 0, 255);
     Color32 white = new Color32(255, 255, 255, 255);
@@ -113,14 +115,10 @@ public class GenBoids : MonoBehaviour
             // Param assignment
         }
     }
-    public void generateBoids()
+    public void generateBoids(int genNum, bool randPos, Vector2 position)
     {
         timer.Start();
         goalStartTime = timer.ElapsedMilliseconds;
-
-
-        int genNum = boidsToGenerate;
-
         //UnityEngine.Debug.Log("Generating " + genNum + " Boids...");
         if (GameObject.Find("Main"))
         {
@@ -129,11 +127,21 @@ public class GenBoids : MonoBehaviour
         } else
         {
             //UnityEngine.Debug.Log("Generating main Boid...");
-            createBoid("Main", red, gray, lightGray);
+
+            if (randPos) {
+                position.x = rnd.Next((int)(((canvasWidth / 2) * -1) + 10), (int)((canvasWidth / 2) - 10));
+                position.y = rnd.Next((int)(((canvasHeight / 2) * -1) + 10), (int)((canvasHeight / 2) - 10));
+            }
+            createBoid("Main", red, gray, lightGray, position);
         }
         for (int i = 0; i < genNum-1; i++)
         {
-            createBoid(("Gen" + (boids.Count-1)), white, transparent, transparent);
+            if (randPos)
+            {
+                position.x = rnd.Next((int)(((canvasWidth / 2) * -1) + 10), (int)((canvasWidth / 2) - 10));
+                position.y = rnd.Next((int)(((canvasHeight / 2) * -1) + 10), (int)((canvasHeight / 2) - 10));
+            }
+            createBoid(("Gen" + (boids.Count-1)), white, transparent, transparent, position);
         }
         if (goal != null)
         {
@@ -164,7 +172,7 @@ public class GenBoids : MonoBehaviour
         UnityEngine.Debug.Log("Deleted " + num + " Boids");
         boids.Clear();
     }
-    public void createBoid(string name, Color32 boidColour, Color32 sepColour, Color32 groupColour)
+    public void createBoid(string name, Color32 boidColour, Color32 sepColour, Color32 groupColour, Vector2 startPos)
     {
         GameObject newDrone = GameObject.Instantiate(GameObject.Find("Dead")); // Create new boid from template
         SpriteRenderer sr = newDrone.GetComponent<SpriteRenderer>();
@@ -173,6 +181,7 @@ public class GenBoids : MonoBehaviour
         newDrone.tag = "drone";
         newDrone.AddComponent<BoidScript>(); // Assign script to boid
         var boidScript = newDrone.GetComponent<BoidScript>();
+        newDrone.transform.position = startPos;
 
         if (name == "Main") // If main boid, then create radii
         {

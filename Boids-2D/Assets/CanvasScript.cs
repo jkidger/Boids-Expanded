@@ -44,7 +44,7 @@ public class CanvasScript : MonoBehaviour
     private void Update()
     {
         // Update Edges
-        x = gameObject.transform.localScale.x / 2;
+        /*x = gameObject.transform.localScale.x / 2;
         y = gameObject.transform.localScale.y / 2;
         topLeft = new Vector2(x * -1, y);
         topRight = new Vector2(x, y);
@@ -57,7 +57,7 @@ public class CanvasScript : MonoBehaviour
         edges[2].GetComponent<LineRenderer>().SetPosition(0, botRight);
         edges[2].GetComponent<LineRenderer>().SetPosition(1, botLeft);
         edges[3].GetComponent<LineRenderer>().SetPosition(0, botLeft);
-        edges[3].GetComponent<LineRenderer>().SetPosition(1, topLeft);
+        edges[3].GetComponent<LineRenderer>().SetPosition(1, topLeft);*/
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -80,6 +80,10 @@ public class CanvasScript : MonoBehaviour
             // Detect right click to create goal nodes
             createGoal(Camera.main.ScreenToWorldPoint(Input.mousePosition), ("goal" + count));
             count++;
+        }
+        else if (Input.GetMouseButtonDown(2))
+        {
+            GameObject.Find("Main Camera").GetComponent<GenBoids>().generateBoids(1, false, Camera.main.ScreenToWorldPoint(Input.mousePosition));
         }
     }
     public GameObject createObstacle(Vector2 start, Vector2 end, string name)

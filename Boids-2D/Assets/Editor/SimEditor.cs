@@ -17,7 +17,7 @@ public class NewBehaviourScript : Editor
             }
             if (GUILayout.Button("Generate Boids"))
             {
-                genBoids.generateBoids();
+                genBoids.generateBoids(genBoids.boidsToGenerate, true, new Vector2(0,0));
             }
         GUILayout.EndHorizontal();
         if (GUILayout.Button("Delete all Obstacles"))
